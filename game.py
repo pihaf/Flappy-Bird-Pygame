@@ -6,6 +6,7 @@ import config
 
 wing = 'data/audio/wing.wav'
 hit = 'data/audio/hit.wav'
+point = 'data/audio/point.wav'
 
 pygame.mixer.init()
 
@@ -205,6 +206,9 @@ main_menu()
 
 begin = True
 
+score = 0
+font = pygame.font.Font(None, 74)
+
 while begin:
 
     clock.tick(config.CLOCK_TICK_RATE)
@@ -234,6 +238,16 @@ while begin:
     bird_group.draw(screen)
     ground_group.draw(screen)
 
+    # Render score
+    score_text = font.render(str(int(score)), True, (0, 0, 0))
+    text_rect = score_text.get_rect(center=(config.SCREEN_WIDTH / 2, 50))
+
+    # Draw background rectangle
+    bg_rect = pygame.Rect(text_rect.x - 10, text_rect.y - 10, text_rect.width + 20, text_rect.height + 20)
+    pygame.draw.rect(screen, (255, 255, 255), bg_rect)
+    pygame.draw.rect(screen, (0, 0, 0), bg_rect, 2)
+
+    screen.blit(score_text, text_rect)
     pygame.display.update()
 
 while True:
@@ -273,6 +287,25 @@ while True:
     bird_group.draw(screen)
     pipe_group.draw(screen)
     ground_group.draw(screen)
+
+    # Check for passing through pipes
+    for pipe in pipe_group:
+        if pipe.rect.right < bird.rect.left and not getattr(pipe, 'scored', False):
+            pipe.scored = True
+            score += 0.5
+            pygame.mixer.music.load(point)
+            pygame.mixer.music.play()
+
+    # Render score
+    score_text = font.render(str(int(score)), True, (0, 0, 0))
+    text_rect = score_text.get_rect(center=(config.SCREEN_WIDTH / 2, 50))
+
+    # Draw background rectangle
+    bg_rect = pygame.Rect(text_rect.x - 10, text_rect.y - 10, text_rect.width + 20, text_rect.height + 20)
+    pygame.draw.rect(screen, (255, 255, 255), bg_rect)
+    pygame.draw.rect(screen, (0, 0, 0), bg_rect, 2)
+
+    screen.blit(score_text, text_rect)
 
     pygame.display.update()
 
