@@ -10,38 +10,60 @@ hit = 'data/audio/hit.wav'
 pygame.mixer.init()
 
 class Bird(pygame.sprite.Sprite):
-
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-
         self.images = [pygame.image.load('data/sprites/bluebird-upflap.png').convert_alpha(),
                        pygame.image.load('data/sprites/bluebird-midflap.png').convert_alpha(),
                        pygame.image.load('data/sprites/bluebird-downflap.png').convert_alpha()]
-
         self.speed = config.SPEED
-
         self.current_image = 0
-        self.image = pygame.image.load('data/sprites/bluebird-upflap.png').convert_alpha()
+        self.image = self.images[self.current_image]
         self.mask = pygame.mask.from_surface(self.image)
-
         self.rect = self.image.get_rect()
         self.rect[0] = config.SCREEN_WIDTH / 6
         self.rect[1] = config.SCREEN_HEIGHT / 2
+        self.rotation = 0
+        self.falling = False
 
     def update(self):
-        self.current_image = (self.current_image + 1) % 3
-        self.image = self.images[self.current_image]
-        self.speed += config.GRAVITY
+        if not self.falling:
+            self.current_image = (self.current_image + 1) % 3
+            self.image = self.images[self.current_image]
+            self.speed += config.GRAVITY
+            self.rect[1] += self.speed
 
-        # UPDATE HEIGHT
-        self.rect[1] += self.speed
+            if self.rotation > 0:
+                self.rotation -= 5
+                if self.rotation < 0:
+                    self.rotation = 0
+
+            rotated_image = pygame.transform.rotate(self.image, self.rotation)
+            self.image = rotated_image
+            self.mask = pygame.mask.from_surface(self.image)
+        else:
+            self.speed += config.GRAVITY
+            self.rect[1] += self.speed
+            self.rotation -= 0
+            rotated_image = pygame.transform.rotate(self.image, self.rotation)
+            self.image = rotated_image
+            self.mask = pygame.mask.from_surface(self.image)
 
     def bump(self):
-        self.speed = -config.SPEED
+        if not self.falling:
+            self.speed = -config.SPEED
+            self.rotation = 45
 
     def begin(self):
         self.current_image = (self.current_image + 1) % 3
         self.image = self.images[self.current_image]
+        rotated_image = pygame.transform.rotate(self.image, self.rotation)
+        self.image = rotated_image
+        self.mask = pygame.mask.from_surface(self.image)
+
+    def start_falling(self):
+        self.falling = True
+        self.speed = 0
+        self.rotation = 90
 
 class Pipe(pygame.sprite.Sprite):
 
@@ -258,5 +280,14 @@ while True:
             pygame.sprite.groupcollide(bird_group, pipe_group, False, False, pygame.sprite.collide_mask)):
         pygame.mixer.music.load(hit)
         pygame.mixer.music.play()
-        time.sleep(1)
+        bird.start_falling()
+        while bird.rect[1] < config.SCREEN_HEIGHT - config.GROUND_HEIGHT - bird.rect.height:
+            screen.blit(BACKGROUND, (0, 0))
+            bird_group.update()
+            ground_group.update()
+            bird_group.draw(screen)
+            pipe_group.draw(screen)
+            ground_group.draw(screen)
+            pygame.display.update()
+            clock.tick(config.CLOCK_TICK_RATE)
         break
