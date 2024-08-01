@@ -9,6 +9,9 @@ hit = 'data/audio/hit.wav'
 point = 'data/audio/point.wav'
 
 pygame.mixer.init()
+wing_sound = pygame.mixer.Sound(wing)
+hit_sound = pygame.mixer.Sound(hit)
+point_sound = pygame.mixer.Sound(point)
 
 class Bird(pygame.sprite.Sprite):
     def __init__(self):
@@ -219,8 +222,7 @@ while begin:
         if event.type == KEYDOWN:
             if event.key == K_SPACE or event.key == K_UP:
                 bird.bump()
-                pygame.mixer.music.load(wing)
-                pygame.mixer.music.play()
+                wing_sound.play()
                 begin = False
 
     screen.blit(BACKGROUND, (0, 0))
@@ -260,8 +262,7 @@ while True:
         if event.type == KEYDOWN:
             if event.key == K_SPACE or event.key == K_UP:
                 bird.bump()
-                pygame.mixer.music.load(wing)
-                pygame.mixer.music.play()
+                wing_sound.play()
 
     screen.blit(BACKGROUND, (0, 0))
 
@@ -293,8 +294,7 @@ while True:
         if pipe.rect.right < bird.rect.left and not getattr(pipe, 'scored', False):
             pipe.scored = True
             score += 0.5
-            pygame.mixer.music.load(point)
-            pygame.mixer.music.play()
+            point_sound.play() 
 
     # Render score
     score_text = font.render(str(int(score)), True, (0, 0, 0))
@@ -311,8 +311,7 @@ while True:
 
     if (pygame.sprite.groupcollide(bird_group, ground_group, False, False, pygame.sprite.collide_mask) or
             pygame.sprite.groupcollide(bird_group, pipe_group, False, False, pygame.sprite.collide_mask)):
-        pygame.mixer.music.load(hit)
-        pygame.mixer.music.play()
+        hit_sound.play()
         bird.start_falling()
         while bird.rect[1] < config.SCREEN_HEIGHT - config.GROUND_HEIGHT - bird.rect.height:
             screen.blit(BACKGROUND, (0, 0))
